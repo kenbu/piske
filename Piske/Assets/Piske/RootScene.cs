@@ -1,18 +1,21 @@
 ﻿using UnityEngine;
 using System.Collections;
-using kenbu.URouter;
+using kenbu.Piske;
 using System.Collections.Generic;
 
 
-namespace kenbu.URouter{
+namespace kenbu.Piske{
     
     public class RootScene : Scene {
 
 
-        public void SetupRoot(System.Action callback){
-            Router = GetComponent <IRouter>();
+        public void SetupRoot(Dictionary<string, object> json, System.Action callback){
+            Router = gameObject.AddComponent (typeof(Router))as Router;
 
-            base.Setup (this, null);
+            if (json != null) {
+                //setup with json
+
+            }
 
 
             StartCoroutine (_SetupRoot(callback));

@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
-using kenbu.URouter;
+using kenbu.Piske;
 using System.Collections.Generic;
 
 
-namespace kenbu.URouter{
+namespace kenbu.Piske{
 
     public interface IRouter{
 
@@ -40,6 +40,8 @@ namespace kenbu.URouter{
         //向かう
         public void Goto(string fullPath){
             Debug.Log ("Goto : " + fullPath);
+
+            //todo: 最初からシーンが用意されてなくて動く前提で作る。
 
             //出発地点を現在地に
             DiparturedScene = CurrentScene;

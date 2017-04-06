@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using kenbu.URouter;
+using kenbu.Piske;
 using System.Collections.Generic;
 
 
@@ -25,18 +25,28 @@ using System.Collections.Generic;
 
 
 
-namespace kenbu.URouter{
+namespace kenbu.Piske{
 
     public class Scene : MonoBehaviour, IScene {
         //シーン追加
         public void AddChild (IScene scene){
             _children.Add (scene);
+            scene.Transform.SetParent (transform);
         }
+        public void OnAddedParent (IScene parent){
+            Parent = parent;
+            Router = parent.Router;
+        }
+
+        //childrenは使わない方がいいかも。
 
         //シーン削除
         public void RemoveChild (IScene scene){
-            if (_children.IndexOf (scene) >= 0) {
-                _children.Remove (scene);
+            //このメソッドはいらんのかもしれん。
+            int index = _children.IndexOf (scene);
+            if (index >= 0) {
+                _children.RemoveAt (index);
+                scene.Dispose ();
             } else {
                 Debug.LogWarning (scene.ID + "が見つかりませんでした。");
             }
@@ -44,10 +54,12 @@ namespace kenbu.URouter{
 
         //破棄
         public void Dispose(){
+            
             foreach(var child in _children){
                 child.Dispose ();
             }
-
+            _children = null;
+            Destroy (gameObject);
         }
 
         //参照系
@@ -81,25 +93,16 @@ namespace kenbu.URouter{
 
         //自身プロパティ
         //ID
-        [SerializeField]
-        private string _id;
-        public string ID{
-            get{
-                return _id;
-            }
+        public string ID {
+            get;
+            protected set;
         }
 
         //初期化ルートシーンが生成時に一回だけ呼ばれる。
-        public virtual void Setup(RootScene root, Scene parent){
-
+        public virtual void Setup(string id){
+            ID = id;
             Debug.Log ("Setup: " + ID);
 
-            Root = root;
-            Router = root.Router;
-            Parent = parent;
-            foreach (var child in _children) {
-                child.Setup (root, this);
-            }
 
         }
 
@@ -192,6 +195,11 @@ namespace kenbu.URouter{
             Debug.Log ("OnUnload: " + ID);
             yield break;
         }
+        public Transform Transform{
+            get{ 
+                return transform;
+            }
+        }
 
 
     }
@@ -200,6 +208,8 @@ namespace kenbu.URouter{
 
         //シーン追加
         void AddChild (IScene scene);
+        //シーン
+        void OnAddedParent (IScene parent);
 
         //シーン削除
         void RemoveChild (IScene scene);
@@ -228,7 +238,7 @@ namespace kenbu.URouter{
         string ID{get;}
 
         //初期化ルートシーンが生成時に呼ばれる。
-        void Setup (RootScene root, Scene parent);
+        void Setup (string id);
 
         //メソッド
         IEnumerator Init();
@@ -246,6 +256,8 @@ namespace kenbu.URouter{
 
         //経由　戻る
         IEnumerator Unload();
+
+        Transform Transform{get;}
     }
 
 }
