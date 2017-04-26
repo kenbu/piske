@@ -13,45 +13,23 @@ public class Dev : MonoBehaviour {
 
     private Button[] _buttonList;
 
+    //大ルーター　Sceneの切り替え　 Outgame/Ingame
+    //中ルーター　Gacha, 強化
+    //小ルーター　強化トップ、強化選択、強化
+
+
+
 	// Use this for initialization
 	void Start () {
         _buttonList = GetComponentsInChildren <Button>();
         foreach(var b in _buttonList){
-            //b.gameObject.GetComponentInChildren <Text> ().text
             b.onClick.AddListener (ClickButton(b.gameObject.GetComponentInChildren <Text> ().text));
         }
+
         //Root
-        _rootScene.Setup ("Scene1");
-
-        //Scene1
-        var id = "Scene1_1";
-        var scene1_go = new GameObject (id);
-        var scene1 = scene1_go.AddComponent (Type.GetType ("kenbu.Piske.Scene"))as Scene;
-        scene1.Setup (id);
-
-
-        //大ルーターと小ルーター
-
-        _rootScene.AddChild (scene1);
-
-        string SceneJsonString = Resources.Load ("Router").ToString ();
-
-        //パーサーを書くか。
-        /**
-         * SceneDTO的な
-         * Scene1: {
-         *   Scene1_1: {
-         *    class: "aaaa"
-         *    children: [];
-         * }
-         * /
-        Dictionary<string, object> SceneJson = JsonUtility.FromJson<Dictionary<string, object>>(SceneJsonString);
-
-
-        _rootScene.SetupRoot (SceneJson, ()=>{
-            _rootScene.Router.Goto ("Scene1");
-        });
-	}
+        SceneBuilder.BuildFromHierarchy(_rootScene);
+        StartCoroutine (_rootScene.Init ());
+    }
 
     private UnityAction ClickButton(string path){
         return () => {

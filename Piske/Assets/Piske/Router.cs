@@ -41,8 +41,6 @@ namespace kenbu.Piske{
         public void Goto(string fullPath){
             Debug.Log ("Goto : " + fullPath);
 
-            //todo: 最初からシーンが用意されてなくて動く前提で作る。
-
             //出発地点を現在地に
             DiparturedScene = CurrentScene;
 
@@ -51,88 +49,74 @@ namespace kenbu.Piske{
 
             TargetScene  = CreateScenePath (fullPath);
 
-            StartCoroutine (_Goto(TargetScene));
+            StartCoroutine (_Goto2());
         }
 
 
-        private IEnumerator _Goto(ScenePath targetScene){
-        
-            //初回
-            if (CurrentScene == null) {
-                yield return StartCoroutine (DownHierarchy(targetScene));
+
+        private IEnumerator _Goto2()
+        {
+
+            if ((CurrentScene != null) && (TargetScene.path == CurrentScene.path)) {
                 yield break;
             }
 
-            //同じ場合
-            if (targetScene.fullPath == CurrentScene.fullPath) {
-                yield break;
-            }
-
-            //Queryのみ変更
-            if (targetScene.path == CurrentScene.path && targetScene.fullPath != CurrentScene.fullPath) {
-                //todo: 変更通知。
-                CurrentScene = targetScene;
-                yield break;
-            }
-
-
-            //現在地を離れる
-            if(CurrentScene != null) {
+            if (CurrentScene != null) {
                 yield return StartCoroutine (CurrentScene.scene.Diparture ());
             }
 
-            //上に戻る
-            if (IsChildHierarchy (targetScene.scene, CurrentScene.scene) == false && IsSameHierarchy (targetScene.scene, CurrentScene.scene) == false) {
-                yield return StartCoroutine (UpHierarchy (targetScene));
-            } else {
-                if (IsChildHierarchy (targetScene.scene, CurrentScene.scene) == false) {
-                    //兄弟
+            //TargetScene
+            //CurrentScene2
+            bool loop = true;
+            while(loop){
+                //最初初期
+                if (CurrentScene == null) {
+                    CurrentScene = CreateScenePath (_root.Path);
+                    yield return StartCoroutine (CurrentScene.scene.Load ());
+                    continue;
+                }
+                //到着
+                if (TargetScene.path == CurrentScene.path) {
+                    yield return StartCoroutine (CurrentScene.scene.Arrival ());
+                    loop = false;
+                    continue;
+                }
+
+                if (IsChildHierarchy(TargetScene.scene, CurrentScene.scene)) {
+                    //Currentから見てTargetが直径の場合
+                    //CurrentScene2
+                    //一つ下がる
+                    foreach (var scene in CurrentScene.scene.Children) {
+                        if (IsChildHierarchy (TargetScene.scene, scene)) {
+                            CurrentScene = CreateScenePath(scene.Path);
+                        }
+                    }
+                    yield return StartCoroutine (CurrentScene.scene.Load ());
+                    continue;
+                } else if(IsSameHierarchy(TargetScene.scene, CurrentScene.scene)) {
+                    //Currentから見てターゲットが兄弟系の場合
+                    //一つ下がる
+                    foreach (var scene in CurrentScene.scene.Parent.Children) {
+                        if (IsChildHierarchy (TargetScene.scene, scene)) {
+                            yield return StartCoroutine (CurrentScene.scene.Unload ());
+                            CurrentScene = CreateScenePath(scene.Path);
+                        }
+                    }
+                    yield return StartCoroutine (CurrentScene.scene.Load ());
+                    continue;
+                } else {
+                    //一個上に上がる
                     yield return StartCoroutine (CurrentScene.scene.Unload ());
+                    CurrentScene = CreateScenePath(CurrentScene.scene.Parent.Path);
+                    continue;
                 }
             }
-            //下に下がる
-            yield return StartCoroutine (DownHierarchy (targetScene));
+
+
+            yield return null;
         }
 
 
-        //Current == null Donwだけ
-
-        //SameHerarchyか調べる。
-        //    -> DOWN
-        //SameHerarchyではない。
-        //  -> UP -> DOWN
-
-        private IEnumerator UpHierarchy(ScenePath targetScene){
-           
-            yield return StartCoroutine (CurrentScene.scene.Unload ());
-            var c = CurrentScene.scene.Parent;
-            CurrentScene = CreateScenePath (c.Path);
-
-            while (targetScene.scene.ID != c.ID && IsSameHierarchy (targetScene.scene, c) == false) {
-                yield return StartCoroutine (c.Unload ());
-                c = CurrentScene.scene.Parent;
-                CurrentScene = CreateScenePath (c.Path);
-            }
-            yield break;
-        }
-
-        private IEnumerator DownHierarchy(ScenePath targetScene){
-
-            var i = 0;
-            if (CurrentScene != null) {
-                i = CurrentScene.sceneList.Count - 1;
-            }
-
-            //直系なのか、兄弟なのか調べないといけない気がするぞ。
-
-            for (; i < targetScene.sceneList.Count; i++) {
-                //通る
-                yield return StartCoroutine (targetScene.sceneList [i].Load ());
-                CurrentScene = CreateScenePath (targetScene.sceneList [i].Path);
-            }
-            //到着
-            yield return StartCoroutine (targetScene.scene.Arrival ());
-        }
 
         //ヒストリーバック
         public void HistoryBack(){
@@ -148,7 +132,30 @@ namespace kenbu.Piske{
 
 
         //現在地
-        public ScenePath CurrentScene{ get; private set;}
+        /*
+        private ScenePath _currentScene;
+        public ScenePath CurrentScene{ 
+            get{ 
+                return _currentScene;
+            }
+            private set
+            { 
+                Debug.Log ("CurrentScene: " + value.scene.ID);
+                _currentScene = value;
+            }
+        }
+        */
+        private ScenePath _currentScene2;
+        public ScenePath CurrentScene{ 
+            get{ 
+                return _currentScene2;
+            }
+            private set
+            { 
+                Debug.Log ("CurrentScene: " + value.scene.ID);
+                _currentScene2 = value;
+            }
+        }
 
         //目的地
         public ScenePath TargetScene {get; private set;}

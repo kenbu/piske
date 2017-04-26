@@ -8,25 +8,15 @@ namespace kenbu.Piske{
     
     public class RootScene : Scene {
 
+        public bool debugMode;
 
-        public void SetupRoot(Dictionary<string, object> json, System.Action callback){
+        public override void Setup(){
             Router = gameObject.AddComponent (typeof(Router))as Router;
-
-            if (json != null) {
-                //setup with json
-
-            }
-
-
-            StartCoroutine (_SetupRoot(callback));
-        }
-
-        private IEnumerator _SetupRoot(System.Action callback){
-
-            yield return StartCoroutine (Init ());
             Router.Setup (this);
-            callback.Invoke ();
+
+            base.Setup ();
         }
+
 
         /// <summary>
         /// パスからシーンのリストを取得します。
@@ -54,6 +44,26 @@ namespace kenbu.Piske{
             }
 
             return sceneList;
+        }
+
+        private string _traceHierarchyString = "";
+        public void TraceHierarchy(){
+            Debug.Log ("- - - - - TraceHierarchy - - - - - ");
+            _traceHierarchyString = "";
+            TraceHierarchy (this, 0);
+            Debug.Log (_traceHierarchyString);
+        }
+
+        public void TraceHierarchy(IScene scene, int hierarchy){
+            string tab = "";
+            for(int i = 0; i<hierarchy; i++){
+                tab += "　";
+            }
+            _traceHierarchyString += tab + scene.ID + "\n";
+            scene.Children.ForEach ((s)=>{
+                TraceHierarchy (s, hierarchy + 1);
+            });
+
         }
 
     }

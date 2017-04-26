@@ -28,18 +28,22 @@ using System.Collections.Generic;
 namespace kenbu.Piske{
 
     public class Scene : MonoBehaviour, IScene {
+
+        public void DebugMode(){
+        
+        }
+
+
         //シーン追加
         public void AddChild (IScene scene){
             _children.Add (scene);
-            scene.Transform.SetParent (transform);
+            scene.OnAddedParent (this);
         }
         public void OnAddedParent (IScene parent){
             Parent = parent;
             Router = parent.Router;
         }
-
-        //childrenは使わない方がいいかも。
-
+            
         //シーン削除
         public void RemoveChild (IScene scene){
             //このメソッドはいらんのかもしれん。
@@ -98,12 +102,15 @@ namespace kenbu.Piske{
             protected set;
         }
 
+        public SceneStatus SceneStatus{ get; private set;}
+
+
         //初期化ルートシーンが生成時に一回だけ呼ばれる。
-        public virtual void Setup(string id){
-            ID = id;
-            Debug.Log ("Setup: " + ID);
-
-
+        public virtual void Setup(){
+            ID = name;
+            Children.ForEach ((c) =>{
+                c.Setup ();
+            });
         }
 
         public string Path{
@@ -124,19 +131,19 @@ namespace kenbu.Piske{
 
         //初期化ルートシーンが生成時に一回だけ呼ばれる。
         public IEnumerator Init(){
+            SceneStatus = SceneStatus.UNLOAD;
+            UpdateSceneNameWithStatus ();
             yield return StartCoroutine (OnInit());
             foreach (var child in _children) {
                 yield return StartCoroutine (child.Init ());
             }
         }
-        //シーン初期化
-        public IEnumerator SceneInit(){
-            yield return StartCoroutine (OnSceneInit());
-        }
 
         //経由　向かう
         public IEnumerator Load(){
             if (_isLoaded == false) {
+                SceneStatus = SceneStatus.LOAD;
+                UpdateSceneNameWithStatus();
                 yield return StartCoroutine (OnLoad ());
             } else {
                 yield break;
@@ -147,16 +154,23 @@ namespace kenbu.Piske{
 
         //このシーンに到着
         public IEnumerator Arrival(){
+            SceneStatus = SceneStatus.ARRIIVAL;
+
+            UpdateSceneNameWithStatus();
             yield return StartCoroutine (OnArrival());
         }
 
         //このシーンから出発
         public IEnumerator Diparture(){
+            SceneStatus = SceneStatus.LOAD;
+            UpdateSceneNameWithStatus();
             yield return StartCoroutine (OnDiparture());
         }
 
         //経由　戻る
         public IEnumerator Unload(){
+            SceneStatus = SceneStatus.UNLOAD;
+            UpdateSceneNameWithStatus();
             _isLoaded = false;
             yield return StartCoroutine (OnUnload());
         }
@@ -166,15 +180,11 @@ namespace kenbu.Piske{
             Debug.Log ("OnInit: " + ID);
             yield return null;
         }
-        //シーン初期化
-        public virtual IEnumerator OnSceneInit(){
-            Debug.Log ("OnSceneInit: " + ID);
-            yield break;
-        }
 
         //経由　向かう
         public virtual IEnumerator OnLoad(){
             Debug.Log ("OnLoad: " + ID);
+            yield return new WaitForSeconds (0.5f);
             yield break;
         }
 
@@ -187,24 +197,50 @@ namespace kenbu.Piske{
         //このシーンから出発
         public virtual IEnumerator OnDiparture(){
             Debug.Log ("OnDiparture: " + ID);
+            yield return new WaitForSeconds (0.5f);
             yield break;
         }
 
         //経由　戻る
         public virtual IEnumerator OnUnload(){
             Debug.Log ("OnUnload: " + ID);
+            yield return new WaitForSeconds (0.5f);
             yield break;
         }
+
+
         public Transform Transform{
             get{ 
                 return transform;
             }
         }
 
+        private void UpdateSceneNameWithStatus(){
+            string header = "-";
+
+            switch (SceneStatus) {
+            case SceneStatus.LOAD:
+                header = ">";
+                break;
+            case SceneStatus.ARRIIVAL:
+                header = ">>";
+                break;
+            }
+
+            name = header + ID;
+        }
 
     }
 
+    public enum SceneStatus{
+        UNLOAD,
+        LOAD,
+        ARRIIVAL
+    }
+
     public interface IScene  {
+        
+        SceneStatus SceneStatus{get;}
 
         //シーン追加
         void AddChild (IScene scene);
@@ -238,12 +274,11 @@ namespace kenbu.Piske{
         string ID{get;}
 
         //初期化ルートシーンが生成時に呼ばれる。
-        void Setup (string id);
+        void Setup ();
 
         //メソッド
+        //初期化
         IEnumerator Init();
-        //シーン初期化
-        IEnumerator SceneInit();
 
         //経由　向かう
         IEnumerator Load();
