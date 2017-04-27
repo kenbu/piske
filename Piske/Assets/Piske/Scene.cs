@@ -35,13 +35,14 @@ namespace kenbu.Piske{
 
 
         //シーン追加
-        public void AddChild (IScene scene){
-            _children.Add (scene);
-            scene.OnAddedParent (this);
+        public void AddChild (IScene child){
+            _children.Add (child);
+            child.OnAddedParent (this);
         }
         public void OnAddedParent (IScene parent){
             Parent = parent;
             Router = parent.Router;
+            Root = parent.Root;
         }
             
         //シーン削除
@@ -68,13 +69,13 @@ namespace kenbu.Piske{
 
         //参照系
         //ルーター
-        public IRouter Router{get; protected set;}
+        public IRouter Router{get; set;}
 
         //シーンルート
-        public RootScene Root{get;private set;}
+        public RootScene Root{get;protected set;}
 
         //IScene
-        public IScene Parent{get;private set;}
+        public IScene Parent{get;protected set;}
 
         //子シーン
         protected List<IScene> _children = new List<IScene>(); 
@@ -130,12 +131,15 @@ namespace kenbu.Piske{
         private bool _isLoaded = false;
 
         //初期化ルートシーンが生成時に一回だけ呼ばれる。
-        public IEnumerator Init(){
+        public IEnumerator Init(System.Action callback = null){
             SceneStatus = SceneStatus.UNLOAD;
             UpdateSceneNameWithStatus ();
             yield return StartCoroutine (OnInit());
             foreach (var child in _children) {
                 yield return StartCoroutine (child.Init ());
+            }
+            if (callback != null) {
+                callback.Invoke ();
             }
         }
 
@@ -278,7 +282,7 @@ namespace kenbu.Piske{
 
         //メソッド
         //初期化
-        IEnumerator Init();
+        IEnumerator Init(System.Action callback = null);
 
         //経由　向かう
         IEnumerator Load();

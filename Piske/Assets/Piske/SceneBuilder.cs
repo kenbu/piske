@@ -9,20 +9,31 @@ using System;
 namespace kenbu.Piske{
 
     public class SceneBuilder {
+        /// <summary>
+        /// ヒエラルキーの構造からシーンを作る。　SubContent向き
+        /// </summary>
+        /// <returns><c>true</c>, if from hierarchy was built, <c>false</c> otherwise.</returns>
+        /// <param name="root">Root.</param>
         static public bool BuildFromHierarchy(RootScene root){
 
             bool success = BuildRelation (root);
             if (success == false) {
                 throw new Exception ("kenbu.Piske.SceneBuilder.BuildRelation:: ビルドに失敗しました。");
             }
-            root.Setup ();
             root.TraceHierarchy ();
             return success;
+        }
+
+        //別で作った方が良さそうだなぁ。
+        static public bool BuildFromJson(string json){
+            //
+            return false;
         }
 
         static private bool BuildRelation(IScene scene){
             //重複シーンネームチェック
             Dictionary<string, bool> sceneNameCheckDic = new Dictionary<string, bool> ();
+            scene.Setup ();
 
             //直下のSceneを探す
             foreach(Transform child in scene.Transform){

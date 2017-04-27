@@ -10,7 +10,7 @@ namespace kenbu.Piske{
 
         void Setup (RootScene _root);
         //向かう
-        void Goto(string path);
+        void Goto(string path, bool isAddHistory = true);
 
         //ヒストリーバック
         void HistoryBack();
@@ -37,9 +37,19 @@ namespace kenbu.Piske{
             _root = root;
         }
 
+        private List<string> _histories = new List<string>();
+
+        public bool isRouting = false;
+
         //向かう
-        public void Goto(string fullPath){
+        public void Goto(string fullPath, bool isAddHistory = true){
             Debug.Log ("Goto : " + fullPath);
+            if (isRouting) {
+                Debug.Log ("ルーティングがブロックされました。");
+                return;
+            }
+            isRouting = true;
+
 
             //出発地点を現在地に
             DiparturedScene = CurrentScene;
@@ -49,6 +59,17 @@ namespace kenbu.Piske{
 
             TargetScene  = CreateScenePath (fullPath);
 
+
+            if ((CurrentScene != null) && (TargetScene.path == CurrentScene.path)) {
+                isRouting = false;
+                Debug.Log ("同じパスにGOTOしました");
+                return;
+            }
+            //ヒストリー登録
+            if(isAddHistory) {
+                _histories.Add (fullPath);
+            }
+
             StartCoroutine (_Goto2());
         }
 
@@ -57,9 +78,6 @@ namespace kenbu.Piske{
         private IEnumerator _Goto2()
         {
 
-            if ((CurrentScene != null) && (TargetScene.path == CurrentScene.path)) {
-                yield break;
-            }
 
             if (CurrentScene != null) {
                 yield return StartCoroutine (CurrentScene.scene.Diparture ());
@@ -112,27 +130,33 @@ namespace kenbu.Piske{
                 }
             }
 
-
-            yield return null;
+            isRouting = false;
+            yield break;
         }
 
 
 
         //ヒストリーバック
         public void HistoryBack(){
-            
+            if (_histories.Count < 2 || isRouting) {
+                return;
+            }
+            _histories.RemoveAt (_histories.Count - 1);
+            string fullpath = _histories [_histories.Count - 1];
+            Goto (fullpath, false);
         }
 
         //一階層上に戻る
         public void GoBack(){
-            //Goto ();
-            //CurrentScene.scene.Parent
-
+            if (CurrentScene.scene.Parent == null) {
+                Debug.Log ("最上階層です。");
+                return;
+            }
+            Goto (CurrentScene.scene.Parent.Path);
         }
 
 
         //現在地
-        /*
         private ScenePath _currentScene;
         public ScenePath CurrentScene{ 
             get{ 
@@ -140,20 +164,7 @@ namespace kenbu.Piske{
             }
             private set
             { 
-                Debug.Log ("CurrentScene: " + value.scene.ID);
                 _currentScene = value;
-            }
-        }
-        */
-        private ScenePath _currentScene2;
-        public ScenePath CurrentScene{ 
-            get{ 
-                return _currentScene2;
-            }
-            private set
-            { 
-                Debug.Log ("CurrentScene: " + value.scene.ID);
-                _currentScene2 = value;
             }
         }
 

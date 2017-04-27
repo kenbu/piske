@@ -11,8 +11,12 @@ namespace kenbu.Piske{
         public bool debugMode;
 
         public override void Setup(){
+            //ルータ
             Router = gameObject.AddComponent (typeof(Router))as Router;
             Router.Setup (this);
+
+            //ルート
+            Root = this;
 
             base.Setup ();
         }
@@ -59,7 +63,7 @@ namespace kenbu.Piske{
             for(int i = 0; i<hierarchy; i++){
                 tab += "　";
             }
-            _traceHierarchyString += tab + scene.ID + "\n";
+            _traceHierarchyString += tab + scene.ID + " / " +scene.Router + "\n";
             scene.Children.ForEach ((s)=>{
                 TraceHierarchy (s, hierarchy + 1);
             });
