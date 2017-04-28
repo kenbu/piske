@@ -16,6 +16,9 @@ namespace RouterTest
             _view.OnShowDetail = (id)=>{
                 Router.Goto("Detail?id=" + id);
             };
+            _view.OnShowWeb = ()=>{
+                Router.Goto("../Web");
+            };
             yield break;
         }
 

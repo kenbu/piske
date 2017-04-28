@@ -244,13 +244,27 @@ namespace kenbu.Piske{
         }
 
         private string ToAbsolutePath(string path){
-        
-            //先頭が「/Test/test」の場合
+            //先頭が「/Test/test」の場合絶対リンク
             if(path.IndexOf ("/") == 0){
                 return path;
             }
-            // test/
+            // 先頭が　「../Test/test」の場合の相対リンク
+            if(path.IndexOf ("../") == 0){
+
+                int parentCnt = 0;
+                while (path.IndexOf ("../") == 0) {
+                    parentCnt++;
+                    path = path.Remove (0, 3);
+                }
+                var s = CurrentScene.scene;
+                for (var i = 0; i < parentCnt; i++) {
+                    s = s.Parent;
+                }
+                return s.Path + "/" + path;
+            }
+
             return CurrentScene.path + "/" + path;
+
         }
 
         private ScenePath CreateScenePath(string pathWithQuery){

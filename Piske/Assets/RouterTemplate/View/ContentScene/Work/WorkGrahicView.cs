@@ -6,6 +6,10 @@ public class WorkGrahicView : MonoBehaviour {
 
     [SerializeField]
     private Button _backButton;
+
+    [SerializeField]
+    private Button _webButton;
+
     [SerializeField]
     private Button _work1;
     [SerializeField]
@@ -15,6 +19,7 @@ public class WorkGrahicView : MonoBehaviour {
 
     public System.Action OnBack;
     public System.Action<string> OnShowDetail;
+    public System.Action OnShowWeb;
 
     private void Awake(){
         _backButton.onClick.AddListener (()=>{
@@ -29,6 +34,9 @@ public class WorkGrahicView : MonoBehaviour {
         });
         _work3.onClick.AddListener (()=>{
             OnShowDetail.Invoke ("item3");
+        });
+        _webButton.onClick.AddListener (()=>{
+            OnShowWeb.Invoke ();
         });
 
     }

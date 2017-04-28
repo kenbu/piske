@@ -1,21 +1,8 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Piske/Router.cs">
-    <Files>
-      <File FileName="Assets/Piske/RootScene.cs" Line="43" Column="1" />
-      <File FileName="Assets/RouterTemplate/View/ContentScene/Work/WorkGrahicView.cs" Line="31" Column="43" />
-      <File FileName="Assets/RouterTemplate/Router/WorkGraphicScene.cs" Line="17" Column="66" />
-      <File FileName="Assets/Piske/Scene.cs" Line="90" Column="31" />
-      <File FileName="Assets/RouterTemplate/Router/WorkGraphicDetailScene.cs" Line="23" Column="9" />
-      <File FileName="Assets/RouterTemplate/View/ContentScene/Work/WorkGrahicDetailView.cs" Line="24" Column="1" />
-      <File FileName="Assets/Piske/Router.cs" Line="195" Column="52" />
-    </Files>
-  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workbench />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore>
-      <Breakpoint file="/Users/a13098/piske/Piske/Assets/RouterTemplate/Router/WorkGraphicDetailScene.cs" line="27" column="23" />
-      <Breakpoint file="/Users/a13098/piske/Piske/Assets/RouterTemplate/View/ContentScene/Work/WorkGrahicDetailView.cs" line="23" column="9" />
-    </BreakpointStore>
+    <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>
