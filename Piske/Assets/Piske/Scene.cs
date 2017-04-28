@@ -123,7 +123,7 @@ namespace kenbu.Piske{
                     pathString = p.ID + "/" + pathString;
                     p = p.Parent;
                 }
-                return pathString;
+                return "/" + pathString;
             }
         }
 
@@ -188,7 +188,6 @@ namespace kenbu.Piske{
         //経由　向かう
         public virtual IEnumerator OnLoad(){
             Debug.Log ("OnLoad: " + ID);
-            yield return new WaitForSeconds (0.5f);
             yield break;
         }
 
@@ -201,14 +200,12 @@ namespace kenbu.Piske{
         //このシーンから出発
         public virtual IEnumerator OnDiparture(){
             Debug.Log ("OnDiparture: " + ID);
-            yield return new WaitForSeconds (0.5f);
             yield break;
         }
 
         //経由　戻る
         public virtual IEnumerator OnUnload(){
             Debug.Log ("OnUnload: " + ID);
-            yield return new WaitForSeconds (0.5f);
             yield break;
         }
 

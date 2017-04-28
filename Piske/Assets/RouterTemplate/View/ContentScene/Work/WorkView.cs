@@ -14,10 +14,10 @@ public class WorkView : MonoBehaviour {
 
     private void Awake(){
         _graphicButton.onClick.AddListener (()=>{
-            OnGoto.Invoke ("Root/Work/Graphic");
+            OnGoto.Invoke ("Graphic");
         });
         _webButton.onClick.AddListener (()=>{
-            OnGoto.Invoke ("Root/Work/Web");
+            OnGoto.Invoke ("Web");
         });
     }
 

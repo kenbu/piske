@@ -22,10 +22,10 @@ public class GlobalMenu : MonoBehaviour {
             OnHistoryBack.Invoke();
         });
         _homeButton.onClick.AddListener (()=>{
-            OnGoto.Invoke("Root/Home");
+            OnGoto.Invoke("/Root/Home");
         });
         _workButton.onClick.AddListener (()=>{
-            OnGoto.Invoke("Root/Work");
+            OnGoto.Invoke("/Root/Work");
         });
 	}
 	

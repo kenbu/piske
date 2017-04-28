@@ -2,6 +2,7 @@
 using System.Collections;
 using kenbu.Piske;
 using System.Collections.Generic;
+using System;
 
 
 namespace kenbu.Piske{
@@ -42,23 +43,30 @@ namespace kenbu.Piske{
         public bool isRouting = false;
 
         //向かう
-        public void Goto(string fullPath, bool isAddHistory = true){
-            Debug.Log ("Goto : " + fullPath);
+        public void Goto(string pathWithQuery, bool isAddHistory = true){
+            Debug.Log ("Goto1 : " + pathWithQuery);
             if (isRouting) {
                 Debug.Log ("ルーティングがブロックされました。");
                 return;
             }
             isRouting = true;
 
+            //絶対パスに変換
+            pathWithQuery = ToAbsolutePath (pathWithQuery);
+            Debug.Log ("Goto2 : " + pathWithQuery);
 
+            TargetScene  = CreateScenePath (pathWithQuery);
+            if (TargetScene == null) {
+                //ターゲットが見つからない場合。
+                isRouting = false;
+                throw new Exception (pathWithQuery + "は、ないよ");
+                return;
+            }
             //出発地点を現在地に
             DiparturedScene = CurrentScene;
 
             //クエリを分解
-            SetQuery (fullPath);
-
-            TargetScene  = CreateScenePath (fullPath);
-
+            SetQuery (pathWithQuery);
 
             if ((CurrentScene != null) && (TargetScene.path == CurrentScene.path)) {
                 isRouting = false;
@@ -67,7 +75,7 @@ namespace kenbu.Piske{
             }
             //ヒストリー登録
             if(isAddHistory) {
-                _histories.Add (fullPath);
+                _histories.Add (pathWithQuery);
             }
 
             StartCoroutine (_Goto2());
@@ -87,6 +95,13 @@ namespace kenbu.Piske{
             //CurrentScene2
             bool loop = true;
             while(loop){
+                //yield return new WaitForSeconds (0.5f);
+                if (CurrentScene == null) {
+                    Debug.Log ("Currentなし");
+                } else {
+                    Debug.Log (CurrentScene.pathWithQuery);
+
+                }
                 //最初初期
                 if (CurrentScene == null) {
                     CurrentScene = CreateScenePath (_root.Path);
@@ -185,6 +200,7 @@ namespace kenbu.Piske{
         //Utils
         public void SetQuery(string path){
             //todo: クエリ分解
+            //var uri = new Uri(path);
             _query = new Dictionary<string, string> ();
         }
 
@@ -227,21 +243,38 @@ namespace kenbu.Piske{
             return target.Path.IndexOf (current.Path) >= 0;
         }
 
+        private string ToAbsolutePath(string path){
+        
+            //先頭が「/Test/test」の場合
+            if(path.IndexOf ("/") == 0){
+                return path;
+            }
+            // test/
+            return CurrentScene.path + "/" + path;
+        }
 
-        private ScenePath CreateScenePath(string fullPath){
+        private ScenePath CreateScenePath(string pathWithQuery){
             var scenePath = new ScenePath ();
-            scenePath.fullPath = fullPath;
+            scenePath.pathWithQuery = pathWithQuery;
 
             //クエリーを取り除く
             char queryDelimiter = '?';
 
-            string[] splited = fullPath.Split (queryDelimiter);
+            string[] splited = pathWithQuery.Split (queryDelimiter);
             if (splited.Length > 1) {
-                scenePath.query = fullPath.Split (queryDelimiter)[1];
+                scenePath.query = pathWithQuery.Split (queryDelimiter)[1];
             }
-            scenePath.path = fullPath.Split (queryDelimiter)[0];
+            scenePath.path = pathWithQuery.Split (queryDelimiter)[0];
             scenePath.sceneList = _root.GetSceneList (scenePath.path);
+            //シーンが見つからない場合。
+            if (scenePath.sceneList == null) {
+                return null;
+            }
+
             scenePath.scene = scenePath.sceneList [scenePath.sceneList.Count - 1];
+
+
+
             return scenePath;
         }
 
@@ -250,7 +283,7 @@ namespace kenbu.Piske{
     public class ScenePath{
         public string path;
         public string query;
-        public string fullPath;
+        public string pathWithQuery;
         public List<IScene> sceneList;
         public IScene scene;
     }

@@ -25,7 +25,7 @@ public class Dev : MonoBehaviour {
         //デフォルトシーン設定が欲しいな。
         SceneBuilder.BuildFromHierarchy(_rootScene);
         StartCoroutine (_rootScene.Init (()=>{
-            _rootScene.Router.Goto ("Root/Home");
+            _rootScene.Router.Goto ("/Root/Home");
         }));
     }
 
