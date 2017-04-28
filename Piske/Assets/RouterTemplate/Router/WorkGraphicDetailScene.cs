@@ -13,6 +13,9 @@ namespace RouterTest
             _view.OnClose = ()=>{
                 Router.GoBack ();
             };
+            _view.OnChangeItem =(id)=>{
+                Router.Goto ("?id=" + id);
+            };
             yield break;
         }
 
@@ -23,8 +26,7 @@ namespace RouterTest
 
         //このシーンに到着
         public override IEnumerator OnArrival(){
-            var query = Router.Query;
-            _view.UpdateDate ();
+            _view.UpdateDate (Router.Query);
             _view.Show ();
 
             yield break;
@@ -39,6 +41,10 @@ namespace RouterTest
         //経由　戻る
         public override IEnumerator OnUnload(){
             yield break;
+        }
+
+        public override void OnChangeQuery(){
+            _view.UpdateDate (Router.Query);
         }
     }
 }

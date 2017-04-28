@@ -11,6 +11,8 @@ public class GlobalMenu : MonoBehaviour {
 
     [SerializeField]
     private Button _workButton;
+    [SerializeField]
+    private Text _text;
 
 
     public System.Action<string> OnGoto;
@@ -30,7 +32,7 @@ public class GlobalMenu : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {
-	
+    public void UpdateData (string url) {
+        _text.text = url;
 	}
 }

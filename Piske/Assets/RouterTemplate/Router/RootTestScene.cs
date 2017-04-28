@@ -10,6 +10,7 @@ namespace RouterTest
         private GlobalMenu _menu;
 
         public override IEnumerator OnInit(){
+
             _menu.OnGoto = ((path) => {
                 Router.Goto (path);
             });
@@ -17,6 +18,11 @@ namespace RouterTest
                 Router.HistoryBack ();
             });
             _menu.gameObject.SetActive (false);
+
+
+            Router.OnChangeTargetScene+= () => {
+                _menu.UpdateData(Router.TargetScene.pathWithQuery);
+            };
             yield break;
         }
 
@@ -31,5 +37,6 @@ namespace RouterTest
             _menu.gameObject.SetActive (false);
             yield break;
         }
+
     }
 }

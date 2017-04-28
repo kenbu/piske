@@ -3,6 +3,7 @@ using System.Collections;
 using kenbu.Piske;
 using System.Collections.Generic;
 using System;
+using UnityEngine.EventSystems;
 
 
 namespace kenbu.Piske{
@@ -29,9 +30,24 @@ namespace kenbu.Piske{
         ScenePath DiparturedScene{ get;}
 
         Dictionary<string, string> Query { get;}
+
+        //Event
+        event RouterEvent.RouterEventHandler OnChangeTargetScene;
+
+    }
+
+    public class RouterEvent{
+        public delegate void RouterEventHandler();
     }
 
     public class Router : MonoBehaviour, IRouter {
+
+
+        /// <summary>
+        /// イベント
+        /// </summary>
+        public event RouterEvent.RouterEventHandler OnChangeTargetScene;
+
 
         private RootScene _root;
         public void Setup(RootScene root){
@@ -68,22 +84,41 @@ namespace kenbu.Piske{
             //クエリを分解
             SetQuery (pathWithQuery);
 
-            if ((CurrentScene != null) && (TargetScene.path == CurrentScene.path)) {
-                isRouting = false;
-                Debug.Log ("同じパスにGOTOしました");
-                return;
+            if (CurrentScene != null) {
+                //パス、クエリともに同じ
+                if (TargetScene.pathWithQuery == CurrentScene.pathWithQuery) {
+                    isRouting = false;
+                    Debug.Log ("同じパスにGOTOしたので止めます");
+                    return;
+                }
+
+                //クエリだけが変更になった
+                if (TargetScene.path == CurrentScene.path && TargetScene.pathWithQuery != CurrentScene.pathWithQuery) {
+                   
+                    CurrentScene = CreateScenePath (pathWithQuery);
+                    CurrentScene.scene.ChangeQuery ();
+                    //
+                    if(isAddHistory) {
+                        _histories.Add (pathWithQuery);
+                    }
+                    OnChangeTargetScene ();
+                    isRouting = false;
+                    return;
+                }
             }
             //ヒストリー登録
             if(isAddHistory) {
                 _histories.Add (pathWithQuery);
             }
 
-            StartCoroutine (_Goto2());
+            OnChangeTargetScene ();
+
+            StartCoroutine (_Goto());
         }
 
 
 
-        private IEnumerator _Goto2()
+        private IEnumerator _Goto()
         {
 
 
@@ -172,15 +207,9 @@ namespace kenbu.Piske{
 
 
         //現在地
-        private ScenePath _currentScene;
-        public ScenePath CurrentScene{ 
-            get{ 
-                return _currentScene;
-            }
-            private set
-            { 
-                _currentScene = value;
-            }
+        public ScenePath CurrentScene { 
+            get;
+            private set;
         }
 
         //目的地
@@ -190,22 +219,39 @@ namespace kenbu.Piske{
         public ScenePath DiparturedScene{ get; private set;}
 
         //クエリ　?test = "みたいな。"
-        private Dictionary<string, string> _query;
         public Dictionary<string, string> Query {
-            get{ 
-                return _query;
-            }
+            get;
+            private set;
         }
 
         //Utils
         public void SetQuery(string path){
-            //todo: クエリ分解
-            //var uri = new Uri(path);
-            _query = new Dictionary<string, string> ();
+            Dictionary<string, string> result = new Dictionary<string, string> ();
+
+            if (path.Contains ("?") == false) {
+                //クエリなし
+                Query = result;
+                return;
+            }
+
+            //id=1&name=aaaa&test=oh
+            string query = path.Split ('?')[1];
+            //[id=1, name=aaaa, test=oh]
+            string[] queryList = query.Split ('&');
+            foreach(var q in queryList){
+                //id=1
+                var splited = q.Split ('=');
+                //id
+                var k = splited [0];
+                //1
+                var v = splited [1];
+                result [k] = v;
+            }
+
+            Query = result;
         }
 
-        //階層
-
+        //兄弟階層
         private bool IsSameHierarchy(IScene target, IScene current){
             if (current == null) {
                 return false;
@@ -242,31 +288,35 @@ namespace kenbu.Piske{
             }
             return target.Path.IndexOf (current.Path) >= 0;
         }
-
-        private string ToAbsolutePath(string path){
+        //絶対パスに変換
+        private string ToAbsolutePath(string inputPath){
             //先頭が「/Test/test」の場合絶対リンク
-            if(path.IndexOf ("/") == 0){
-                return path;
+            if(inputPath.IndexOf ("/") == 0){
+                return inputPath;
             }
             // 先頭が　「../Test/test」の場合の相対リンク
-            if(path.IndexOf ("../") == 0){
+            if(inputPath.IndexOf ("../") == 0){
 
                 int parentCnt = 0;
-                while (path.IndexOf ("../") == 0) {
+                while (inputPath.IndexOf ("../") == 0) {
                     parentCnt++;
-                    path = path.Remove (0, 3);
+                    inputPath = inputPath.Remove (0, 3);
                 }
                 var s = CurrentScene.scene;
                 for (var i = 0; i < parentCnt; i++) {
                     s = s.Parent;
                 }
-                return s.Path + "/" + path;
+                return s.Path + "/" + inputPath;
             }
-
-            return CurrentScene.path + "/" + path;
+            //先頭がクエリのみの変更
+            if (inputPath.IndexOf ("?") == 0) {
+                return CurrentScene.path + inputPath;
+            }
+            //相対パス
+            return CurrentScene.path + "/" + inputPath;
 
         }
-
+        //
         private ScenePath CreateScenePath(string pathWithQuery){
             var scenePath = new ScenePath ();
             scenePath.pathWithQuery = pathWithQuery;

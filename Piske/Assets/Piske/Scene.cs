@@ -179,6 +179,10 @@ namespace kenbu.Piske{
             yield return StartCoroutine (OnUnload());
         }
 
+        public void ChangeQuery(){
+            OnChangeQuery ();
+        }
+
         //テンプレートメソッド
         public virtual IEnumerator OnInit(){
             Debug.Log ("OnInit: " + ID);
@@ -196,6 +200,12 @@ namespace kenbu.Piske{
             Debug.Log ("OnArrival: " + ID);
             yield break;
         }
+
+        public virtual void OnChangeQuery(){
+            Debug.Log ("OnChangeQuery: " + ID);
+        }
+
+
 
         //このシーンから出発
         public virtual IEnumerator OnDiparture(){
@@ -294,6 +304,10 @@ namespace kenbu.Piske{
         IEnumerator Unload();
 
         Transform Transform{get;}
+
+        //このシーンに到着
+        void ChangeQuery();
+
     }
 
 }
