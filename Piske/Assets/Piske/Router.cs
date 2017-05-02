@@ -337,7 +337,9 @@ namespace kenbu.Piske{
 
             scenePath.scene = scenePath.sceneList [scenePath.sceneList.Count - 1];
 
-
+            if (scenePath.scene == null) {
+                return null;
+            }
 
             return scenePath;
         }
